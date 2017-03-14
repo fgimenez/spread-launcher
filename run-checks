@@ -1,6 +1,58 @@
-#!/bin/sh
+#!/bin/bash
+set -x
 
-curl -X POST -v -b cookies.txt \
-     --referer https://code.launchpad.net/~snappy-dev/core-snap/+git/github-import \
-     -d 'request10058.actions.request=Import+Now' \
-     https://code.launchpad.net/~snappy-dev/core-snap/+git/github-import/@@+request-import
+DATETIME='[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}'
+
+get_last_analyzed_build_number(){
+    local new_value=$1
+
+    git clone https://github.com/snapcore/spread-cron.git target
+    cd target
+    total_commits=$(git rev-list --count HEAD)
+    . ./options
+    n=1
+    while [ $n -lt $total_commits ]; do
+        log_entry=$(git log HEAD~${n} --pretty=%B | head -1)
+        if echo "$log_entry" | grep "^$message" ; then
+            old_value=$( echo "$log_entry" | sed -e "s|$message (\(.*\))|\1|")
+            if [ "$new_value" != "$old_value" ]; then
+                echo "$old_value"
+                return
+            fi
+        fi
+        n=$((n+1))
+    done
+    # we didn't find any previous execution, start from the first build
+    echo "1"
+}
+. ./options
+last_build_number=$(echo "$TRAVIS_COMMIT_MESSAGE" | sed -e "s/$message (\(.*\))/\1/")
+last_analyzed_build_number=$(get_last_analyzed_build_number $last_build_number)
+current_build_number=$(($last_analyzed_build_number+1))
+while [ $current_build_number -le $last_build_number ]; do
+    # get build log
+    build=$(curl -s https://api.travis-ci.org/repos/snapcore/snapd/builds?number=${current_build_number})
+    branch=$(echo "$build" | jq -j '.[0].branch')
+    build_id=$(echo "$build" | jq '.[0].id')
+    result=$(echo "$build" | jq '.[0].result')
+    job_id=$(curl -s "https://api.travis-ci.org/repos/snapcore/snapd/builds/${build_id}" | jq '.matrix[2].id')
+
+    curl -s "https://s3.amazonaws.com/archive.travis-ci.org/jobs/${job_id}/log.txt" -o spread.log
+
+    # remove initial lines and travis time marks only leaving spread output
+    sed -i -n '/'"$DATETIME"' Found \/home\/travis\/gopath\/src\/github.com\/snapcore\/snapd\/spread.yaml./,$p' spread.log
+    sed -i 's/^travis_.*$//' spread.log
+    sed -i '/^\s*$/d' spread.log
+
+    # mark first and last entries
+    sed -i '0,/'"$DATETIME"'/s/\('"$DATETIME"'\) \(.*\)/\1 |events-start| \2/' spread.log
+    sed -i ':a;$!{N;ba};s/\(.*\)\('"$DATETIME"'\)\(.*\)/\1\2 |events-end| \3/' spread.log
+
+    # insert build number, branch and result in log entries
+    sed -i '/^'"$DATETIME"'/s/^/<'"$current_build_number"'> <'"$branch"'> <'"$result"'> /' spread.log
+
+    # move to filebeat path
+    mv spread.log "/tmp/spread-${current_build_number}.log"
+
+    current_build_number=$((current_build_number+1))
+done

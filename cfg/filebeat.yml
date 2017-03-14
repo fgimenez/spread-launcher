@@ -1,0 +1,18 @@
+filebeat:
+    prospectors:
+    - paths:
+        - /var/log/spread/*.log
+      input_type: log
+
+output:
+    logstash:
+        hosts: ["10.55.33.23:5044"]
+
+logging:
+    level: debug
+    to_files: true
+    to_syslog: false
+    files:
+        path: /var/log/
+        name: filebeat.log
+        keepfiles: 7

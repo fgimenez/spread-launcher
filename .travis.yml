@@ -1,10 +1,12 @@
 sudo: required
 dist: trusty
-before_install:
-    - openssl aes-256-cbc -K $encrypted_8fd345813abb_key -iv $encrypted_8fd345813abb_iv -in secrets.tar.enc -out secrets.tar -d
-    - tar xvf secrets.tar
+
+env:
+    global:
+        - secure: "TByzs/GulbQXDQEenznfkEVCIA2mgw0dKReNs/e/r3HHRMmDlbPqGe7BmotU7jn1c/M7XgL/pi77jRzVZBGbFQ3ec9QkStruDqF5Z/yJkiES/E3KkMZAYXdj+VglbYQaf8SnGsHVxacEqHiNmpAkAqGeY8GFL2FVFBn9VC3ZRnwWvVMPlxgb9uuPONncomSe1Gc+wzbA3cf6s5HxJ5zUAWhlsBBU68ZV/smD691Xi2s8eVaQzZzZ3/2v/QE4jlUC5u9xAj14O35H3kmnJCPu6f1ZgooIh4J2v88S0000ulhBrSp1VljIUWqi0Fv+Re5k5X9RAYIPZHyF+mKaldzkBAJHTLDyBhCOh9xOrlwILhbRCHj0j6S56eYEnMzf3uIB3vZM4FRNDYOewL1dyz+725JGMsffvZzE9YMw0Yy1xRqCJ8V3+fasPFC+IoHliP5EI3r3OQLwcK6SpqdJTtHBlfAuiiFlNBH80nhQt5S1lqWnbCtBo07ZJohmaMBE/WxjRO5WmPZ4gHQus34qNJnB2e5ijyvFqZkTAeVp2SR2IwhpiSQu6zfSHE1E2C/aAc5gHSM/RmIVojOOaTPBF+4SHaTLzgD3wULxxIwtKSSsmnR28bibTkizKukiUGFj5FmKSa4Q9ojITx1C/rKb8zKP75XPujfg/pGZUlYEIWnDZOU="
+
+install:
+    - ./install-dependencies
 
 script:
     - ./run-checks
-notifications:
-    irc: "chat.freenode.net#spread-cron"

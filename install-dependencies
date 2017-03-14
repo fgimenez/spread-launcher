@@ -1,0 +1,22 @@
+#!/bin/sh
+
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.2.2-amd64.deb &&
+sudo dpkg -i filebeat-5.2.2-amd64.deb
+
+cat > filebeat.yml <<EOF
+filebeat:
+  prospectors:
+  - paths:
+    - /tmp/spread*.log
+    input_type: log
+
+output:
+  logstash:
+  hosts: ["$LOGSTASH_IP:5044"]
+EOF
+
+sudo mv filebeat.yml /etc/filebeat/
+sudo service filebeat start
+
+sudo apt-get update -qq
+sudo apt-get install -qq git jq
