@@ -14,7 +14,7 @@ get_last_analyzed_build_number(){
     while [ $n -lt $total_commits ]; do
         git log HEAD~${n} --pretty=%B | head -1 > log_entry
         if grep "^$message" log_entry; then
-            old_value=$(sed -e "s|$message (\(.*\))|\1|" log_entry)
+            old_value=$(sed -n -e "s|$message (\(.*\))|\1|" log_entry)
             if [ "$new_value" != "$old_value" ]; then
                 echo "$old_value"
                 return
