@@ -12,7 +12,7 @@ filebeat:
 
 output:
   logstash:
-  hosts: ["$LOGSTASH_IP:5044"]
+    hosts: ["$LOGSTASH_IP:5044"]
 EOF
 
 sudo mv filebeat.yml /etc/filebeat/
