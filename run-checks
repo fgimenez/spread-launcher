@@ -8,8 +8,8 @@ get_last_analyzed_build_number(){
 
     git clone https://github.com/snapcore/spread-cron.git target
     cd target
+    git checkout $TRAVIS_BRANCH
     total_commits=$(git rev-list --count HEAD)
-    . ./options
     n=1
     while [ $n -lt $total_commits ]; do
         log_entry=$(git log HEAD~${n} --pretty=%B | head -1)
