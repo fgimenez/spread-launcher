@@ -1,2 +1,2 @@
-pattern_extractor="curl -s https://api.travis-ci.org/repos/snapcore/snapd/builds | jq -j '.[0].number'"
+pattern_extractor="curl -s https://api.travis-ci.org/repos/snapcore/snapd/builds | jq -j 'map(select(.finished_at != null)) | .[0].number'"
 message="New snapd builds [skip notify]"
