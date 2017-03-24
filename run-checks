@@ -12,9 +12,9 @@ get_last_analyzed_build_number(){
     total_commits=$(git rev-list --count HEAD)
     n=1
     while [ $n -lt $total_commits ]; do
-        log_entry=$(git log HEAD~${n} --pretty=%B | head -1)
-        if echo "$log_entry" | grep "^$message" ; then
-            old_value=$( echo "$log_entry" | sed -e "s|$message (\(.*\))|\1|")
+        git log HEAD~${n} --pretty=%B | head -1 > log_entry
+        if grep "^$message" log_entry; then
+            old_value=$(sed -e "s|$message (\(.*\))|\1|" log_entry)
             if [ "$new_value" != "$old_value" ]; then
                 echo "$old_value"
                 return
