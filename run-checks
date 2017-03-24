@@ -8,7 +8,7 @@ get_last_analyzed_build_number(){
 
     git clone https://github.com/snapcore/spread-cron.git target
     cd target
-    git checkout $TRAVIS_BRANCH
+    git checkout $TRAVIS_BRANCH > /dev/null 2>&1
     total_commits=$(git rev-list --count HEAD)
     n=1
     while [ $n -lt $total_commits ]; do
