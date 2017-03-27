@@ -10,26 +10,29 @@ get_last_analyzed_build_number(){
     cd target
     git checkout $TRAVIS_BRANCH > /dev/null 2>&1
     total_commits=$(git rev-list --count HEAD)
-    n=1
+    n=0
     while [ $n -lt $total_commits ]; do
         git log HEAD~${n} --pretty=%B | head -1 > log_entry
-        if grep "^$message" log_entry; then
-            old_value=$(sed -n -e "s|$message (\(.*\))|\1|" log_entry)
+        if grep -q "^$message" log_entry; then
+            old_value=$(sed -e "s|$message (\(.*\))|\1|" log_entry)
             if [ "$new_value" != "$old_value" ]; then
-                echo "$old_value"
-                return
+                build_number="$old_value"
+                break
             fi
         fi
         n=$((n+1))
     done
-    # we didn't find any previous execution, start from the first build
-    echo "1"
+    if [ -z "$build_number" ]; then
+        # we didn't find any previous execution, start from the first build
+        build_number="1"
+    fi
+    echo "$build_number"
 }
 . ./options
 last_build_number=$(echo "$TRAVIS_COMMIT_MESSAGE" | sed -e "s/$message (\(.*\))/\1/")
 last_analyzed_build_number=$(get_last_analyzed_build_number $last_build_number)
-current_build_number=$(($last_analyzed_build_number+1))
-while [ $current_build_number -le $last_build_number ]; do
+current_build_number=$last_build_number
+while [ $current_build_number -gt $last_analyzed_build_number ]; do
     # get build log
     build=$(curl -s https://api.travis-ci.org/repos/snapcore/snapd/builds?number=${current_build_number})
     branch=$(echo "$build" | jq -j '.[0].branch')
@@ -54,5 +57,5 @@ while [ $current_build_number -le $last_build_number ]; do
     # move to filebeat path
     mv spread.log "/tmp/spread-${current_build_number}.log"
 
-    current_build_number=$((current_build_number+1))
+    current_build_number=$((current_build_number-1))
 done
