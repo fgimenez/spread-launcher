@@ -61,7 +61,7 @@ while [ $current_build_number -gt $last_analyzed_build_number ]; do
 
     # wait for filebeat to finish with this file
     current_file_size=$(stat --printf="%s" "$current_file")
-    while [ $(jq -j '.['"$order"'].offset' test.json) != "$current_file_size" ];do
+    while [ $(jq -j '.['"$order"'].offset' /var/lib/filebeat/registry) != "$current_file_size" ];do
         sleep 1
     done
 
