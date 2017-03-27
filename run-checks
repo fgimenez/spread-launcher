@@ -32,6 +32,7 @@ get_last_analyzed_build_number(){
 last_build_number=$(echo "$TRAVIS_COMMIT_MESSAGE" | sed -e "s/$message (\(.*\))/\1/")
 last_analyzed_build_number=$(get_last_analyzed_build_number $last_build_number)
 current_build_number=$last_build_number
+order=0
 while [ $current_build_number -gt $last_analyzed_build_number ]; do
     # get build log
     build=$(curl -s https://api.travis-ci.org/repos/snapcore/snapd/builds?number=${current_build_number})
@@ -55,7 +56,15 @@ while [ $current_build_number -gt $last_analyzed_build_number ]; do
     sed -i '/^'"$DATETIME"'/s/^/<'"$current_build_number"'> <'"$branch"'> <'"$result"'> /' spread.log
 
     # move to filebeat path
-    mv spread.log "/tmp/spread-${current_build_number}.log"
+    current_file="/tmp/spread-${current_build_number}.log"
+    mv spread.log "$current_file"
+
+    # wait for filebeat to finish with this file
+    current_file_size=$(stat --printf="%s" "$current_file")
+    while [ $(jq -j '.['"$order"'].offset' test.json) != "$current_file_size" ];do
+        sleep 1
+    done
 
     current_build_number=$((current_build_number-1))
+    order=$(($order+1))
 done
