@@ -39,7 +39,7 @@ while [ $current_build_number -gt $last_analyzed_build_number ]; do
     branch=$(echo "$build" | jq -j '.[0].branch')
     build_id=$(echo "$build" | jq '.[0].id')
     result=$(echo "$build" | jq '.[0].result')
-    job_id=$(curl -s "https://api.travis-ci.org/repos/snapcore/snapd/builds/${build_id}" | jq '.matrix[2].id')
+    job_id=$(curl -s "https://api.travis-ci.org/repos/snapcore/snapd/builds/${build_id}" | jq '.matrix[0].id')
 
     curl -s "https://s3.amazonaws.com/archive.travis-ci.org/jobs/${job_id}/log.txt" -o spread.log
 
