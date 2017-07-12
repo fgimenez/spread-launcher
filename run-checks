@@ -9,4 +9,6 @@ export SPREAD_TRUST_TEST_KEYS=false
 export SPREAD_SRU_VALIDATION=1
 export SPREAD_CORE_CHANNEL=edge
 
+cd target || exit
+
 ../bin/spread -v linode:ubuntu-16.10-64:tests/main/
