@@ -11,4 +11,4 @@ export SPREAD_CORE_CHANNEL=edge
 
 cd target || exit
 
-../bin/spread -v linode:ubuntu-16.10-64:tests/main/
+../bin/spread -v linode-sru:ubuntu-16.10-64:tests/main/
