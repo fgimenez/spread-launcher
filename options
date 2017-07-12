@@ -1,2 +1,2 @@
 pattern_extractor="curl -v -s -H 'X-Ubuntu-Architecture: amd64' -H 'X-Ubuntu-Series: 16' https://search.apps.ubuntu.com/api/v1/snaps/details/core?channel=edge | jq -j '.revision'"
-message="snapd deb from xenial's proposed after new amd64 core on edge"
+message="snapd deb from trusty's proposed after new amd64 core on edge"
